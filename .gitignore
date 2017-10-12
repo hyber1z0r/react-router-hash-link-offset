@@ -9,3 +9,6 @@ lib
 
 # IDE
 .idea
+
+# lockfiles
+package-lock.json
