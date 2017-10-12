@@ -15,22 +15,29 @@ function reset() {
   }
 }
 
-function getElAndScroll() {
+function getElAndScroll(scrollOffset) {
   const element = document.getElementById(hashFragment);
   if (element !== null) {
     element.scrollIntoView();
+
+    // now account for the optional scroll offset
+    const scrolledY = window.scrollY;
+    if(scrolledY){
+      window.scrollTo(0, scrolledY + scrollOffset);
+    }
+
     reset();
     return true;
   }
   return false;
 }
 
-function hashLinkScroll() {
+function hashLinkScroll(scrollOffset) {
   // Push onto callback queue so it runs after the DOM is updated
   window.setTimeout(() => {
-    if (getElAndScroll() === false) {
+    if (getElAndScroll(scrollOffset) === false) {
       if (observer === null) {
-        observer = new MutationObserver(getElAndScroll);
+        observer = new MutationObserver(getElAndScroll.bind(scrollOffset));
       }
       observer.observe(document, { attributes: true, childList: true, subtree: true });
       // if the element doesn't show up in 10 seconds, stop checking
@@ -50,16 +57,24 @@ export function HashLink(props) {
     } else if (typeof props.to === 'object' && typeof props.to.hash === 'string') {
       hashFragment = props.to.hash.replace('#', '');
     }
-    if (hashFragment !== '') hashLinkScroll();
+    if (hashFragment !== '') hashLinkScroll(props.scrollOffset);
   }
-  return <Link {...props} onClick={handleClick}>{props.children}</Link>;
+
+  return (
+    <Link {...props} onClick={handleClick}>{props.children}</Link>
+  );
 }
 
 HashLink.propTypes = {
   onClick: PropTypes.func,
   children: PropTypes.node,
+  scrollOffset: PropTypes.number,
   to: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.object,
   ]),
+};
+
+HashLink.defaultProps = {
+  scrollOffset: 0
 };
