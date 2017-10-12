@@ -6,3 +6,6 @@ lib
 
 # Files marked with gitigx
 *gitigx*
+
+# IDE folders
+.idea
