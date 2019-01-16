@@ -22,7 +22,7 @@ function getElAndScroll(scrollOffset) {
 
     // now account for the optional scroll offset
     const scrolledY = window.scrollY;
-    if(scrolledY){
+    if (scrolledY) {
       window.scrollTo(0, scrolledY + scrollOffset);
     }
 
@@ -39,7 +39,11 @@ function hashLinkScroll(scrollOffset) {
       if (observer === null) {
         observer = new MutationObserver(getElAndScroll.bind(scrollOffset));
       }
-      observer.observe(document, { attributes: true, childList: true, subtree: true });
+      observer.observe(document, {
+        attributes: true,
+        childList: true,
+        subtree: true
+      });
       // if the element doesn't show up in 10 seconds, stop checking
       asyncTimerId = window.setTimeout(() => {
         reset();
@@ -49,19 +53,29 @@ function hashLinkScroll(scrollOffset) {
 }
 
 export function HashLink(props) {
+  const { scrollOffset, ...otherProps } = props;
+
   function handleClick(e) {
     reset();
-    if (props.onClick) props.onClick(e);
-    if (typeof props.to === 'string') {
-      hashFragment = props.to.split('#').slice(1).join('#');
-    } else if (typeof props.to === 'object' && typeof props.to.hash === 'string') {
-      hashFragment = props.to.hash.replace('#', '');
+    if (otherProps.onClick) otherProps.onClick(e);
+    if (typeof otherProps.to === 'string') {
+      hashFragment = otherProps.to
+        .split('#')
+        .slice(1)
+        .join('#');
+    } else if (
+      typeof otherProps.to === 'object' &&
+      typeof otherProps.to.hash === 'string'
+    ) {
+      hashFragment = otherProps.to.hash.replace('#', '');
     }
-    if (hashFragment !== '') hashLinkScroll(props.scrollOffset);
+    if (hashFragment !== '') hashLinkScroll(scrollOffset);
   }
 
   return (
-    <Link {...props} onClick={handleClick}>{props.children}</Link>
+    <Link {...otherProps} onClick={handleClick}>
+      {otherProps.children}
+    </Link>
   );
 }
 
@@ -69,10 +83,7 @@ HashLink.propTypes = {
   onClick: PropTypes.func,
   children: PropTypes.node,
   scrollOffset: PropTypes.number,
-  to: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.object,
-  ]),
+  to: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
 
 HashLink.defaultProps = {
