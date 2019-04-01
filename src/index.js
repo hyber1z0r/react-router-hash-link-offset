@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 let hashFragment = '';
 let observer = null;
 let asyncTimerId = null;
+let scrollFunction = null;
 
 function reset() {
   hashFragment = '';
@@ -18,14 +19,12 @@ function reset() {
 function getElAndScroll(scrollOffset) {
   const element = document.getElementById(hashFragment);
   if (element !== null) {
-    element.scrollIntoView();
-
+    scrollFunction(element);
     // now account for the optional scroll offset
     const scrolledY = window.scrollY;
     if (scrolledY) {
       window.scrollTo(0, scrolledY + scrollOffset);
     }
-
     reset();
     return true;
   }
@@ -42,7 +41,7 @@ function hashLinkScroll(scrollOffset) {
       observer.observe(document, {
         attributes: true,
         childList: true,
-        subtree: true
+        subtree: true,
       });
       // if the element doesn't show up in 10 seconds, stop checking
       asyncTimerId = window.setTimeout(() => {
@@ -52,8 +51,8 @@ function hashLinkScroll(scrollOffset) {
   }, 0);
 }
 
-export function HashLink(props) {
-  const { scrollOffset, ...otherProps } = props;
+export function genericHashLink(props, As) {
+  const { scrollOffset, scroll, smooth, ...otherProps } = props;
 
   function handleClick(e) {
     reset();
@@ -69,23 +68,40 @@ export function HashLink(props) {
     ) {
       hashFragment = otherProps.to.hash.replace('#', '');
     }
-    if (hashFragment !== '') hashLinkScroll(scrollOffset);
+    if (hashFragment !== '') {
+      scrollFunction = scroll || ((el) => smooth ? el.scrollIntoView({ behavior: 'smooth' })
+            : el.scrollIntoView());
+      hashLinkScroll();
+    }
   }
-
   return (
-    <Link {...otherProps} onClick={handleClick}>
-      {otherProps.children}
-    </Link>
+    <As {...otherProps} onClick={handleClick}>
+      {props.children}
+    </As>
   );
 }
 
-HashLink.propTypes = {
+export function HashLink(props) {
+  return genericHashLink(props, Link);
+}
+
+export function NavHashLink(props) {
+  return genericHashLink(props, NavLink);
+}
+
+const propTypes = {
   onClick: PropTypes.func,
   children: PropTypes.node,
   scrollOffset: PropTypes.number,
+  scroll: PropTypes.func,
+  smooth: PropTypes.bool,
   to: PropTypes.oneOfType([PropTypes.string, PropTypes.object])
 };
 
 HashLink.defaultProps = {
-  scrollOffset: 0
+  scrollOffset: 0,
+  smooth: false
 };
+
+HashLink.propTypes = propTypes;
+NavHashLink.propTypes = propTypes;
