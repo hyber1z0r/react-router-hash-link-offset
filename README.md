@@ -25,3 +25,4 @@ import { HashLink as Link } from 'react-router-hash-link-offset';
 
 * *scrollOffset*: Number of pixels to add as an offset to the scroll destination. Can be a positive
 or a negative number.
+* *smooth*: Boolean to indicate if the scrolling behaviour should be smooth. Defaults to *false*
